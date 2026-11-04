@@ -12,18 +12,45 @@ class EnglishPage extends StatefulWidget {
 }
 
 class _EnglishPageState extends State<EnglishPage> {
+  // Use localhost only for local development. The public browser calls the
+  // Render service directly, avoiding a potentially stale/misconfigured Vercel
+  // /api rewrite. The backend has CORS middleware enabled.
   String get backendUrl {
     final host = Uri.base.host;
     if (host.isEmpty || host == 'localhost' || host == '127.0.0.1') {
       return 'http://localhost:8000';
     }
-    return Uri.base.resolve('/api').toString();
+    return 'https://lingo-backend.onrender.com';
   }
 
   final AudioPlayer _audioPlayer = AudioPlayer();
   String inputText = "";
   String selectedLanguage = "";
   String translatedText = "";
+
+  Future<Map<String, dynamic>> _postJson(String path, Map<String, Object?> body) async {
+    final response = await http
+        .post(
+          Uri.parse('$backendUrl$path'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 90));
+
+    dynamic decoded;
+    try {
+      decoded = jsonDecode(response.body);
+    } on FormatException {
+      throw Exception('Backend returned HTTP ${response.statusCode} with a non-JSON response. Check that the Render service is deployed and the route $path exists.');
+    }
+    if (decoded is! Map<String, dynamic>) {
+      throw Exception('Backend returned an unexpected response (HTTP ${response.statusCode}).');
+    }
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(decoded['error']?.toString() ?? 'Request failed (HTTP ${response.statusCode}).');
+    }
+    return decoded;
+  }
 
   Future<void> handleTranslate() async {
     final text = inputText.trim();
@@ -37,31 +64,16 @@ class _EnglishPageState extends State<EnglishPage> {
     }
 
     try {
-      final response = await http
-          .post(
-            Uri.parse('$backendUrl/translate'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'text': text,
-              'dest_lang_code': supportedLanguages[selectedLanguage],
-            }),
-          )
-          .timeout(const Duration(seconds: 90));
-      final dynamic data;
-      try {
-        data = jsonDecode(response.body);
-      } on FormatException {
-        throw Exception('Translation API returned an invalid response (HTTP ${response.statusCode}). Verify the Vercel /api rewrite and Render service.');
-      }
-      if (data is! Map) throw Exception('Translation API returned an unexpected response.');
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw Exception(data['error']?.toString() ?? 'Translation failed (HTTP ${response.statusCode}).');
-      }
-      if (data['result'] is! String || (data['result'] as String).isEmpty) {
-        throw Exception('Translation API returned no translated text.');
+      final data = await _postJson('/translate', {
+        'text': text,
+        'dest_lang_code': supportedLanguages[selectedLanguage],
+      });
+      final result = data['result'];
+      if (result is! String || result.isEmpty) {
+        throw Exception('Backend did not return translated text.');
       }
       if (!mounted) return;
-      setState(() => translatedText = data['result'] as String);
+      setState(() => translatedText = result);
     } catch (error) {
       _showAlert(error.toString().replaceFirst('Exception: ', ''));
     }
@@ -75,24 +87,17 @@ class _EnglishPageState extends State<EnglishPage> {
     try {
       var language = targetLangCode ?? '';
       if (language.isEmpty) {
-        final detectResponse = await http
-            .post(Uri.parse('$backendUrl/detect'), headers: {'Content-Type': 'application/json'}, body: jsonEncode({'text': textToSpeak}))
-            .timeout(const Duration(seconds: 45));
-        final detected = jsonDecode(detectResponse.body);
-        if (detectResponse.statusCode < 200 || detectResponse.statusCode >= 300) {
-          throw Exception(detected['error'] ?? 'Language detection failed.');
-        }
-        language = detected['language'] ?? 'en';
+        final detected = await _postJson('/detect', {'text': textToSpeak});
+        language = detected['language']?.toString() ?? 'en';
       }
-      final response = await http
-          .post(Uri.parse('$backendUrl/speak'), headers: {'Content-Type': 'application/json'}, body: jsonEncode({'text': textToSpeak, 'language': language}))
-          .timeout(const Duration(seconds: 45));
-      final data = jsonDecode(response.body);
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw Exception(data['error'] ?? 'Speech generation failed.');
-      }
+      final data = await _postJson('/speak', {
+        'text': textToSpeak,
+        'language': language,
+      });
       final audio = data['audio'];
-      if (audio is! String || !audio.contains(',')) throw Exception('Speech API returned invalid audio.');
+      if (audio is! String || !audio.contains(',')) {
+        throw Exception('Backend returned invalid audio data.');
+      }
       await _audioPlayer.play(BytesSource(base64Decode(audio.split(',').last)));
     } catch (error) {
       _showAlert(error.toString().replaceFirst('Exception: ', ''));
@@ -114,17 +119,24 @@ class _EnglishPageState extends State<EnglishPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("English Translator & Speech Synthesis", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+              const Text(
+                "English Translator & Speech Synthesis",
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+              ),
               const SizedBox(height: 25),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14),
-                decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0), width: 2), borderRadius: BorderRadius.circular(8), color: const Color(0xFFF8FAFC)),
+                decoration: BoxDecoration(
+                  border: Border.all(color: const Color(0xFFE2E8F0), width: 2),
+                  borderRadius: BorderRadius.circular(8),
+                  color: const Color(0xFFF8FAFC),
+                ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     isExpanded: true,
                     value: selectedLanguage.isEmpty ? null : selectedLanguage,
                     hint: const Text("-- Select Target Language --"),
-                    items: supportedLanguages.keys.map((lang) => DropdownMenuItem<String>(value: lang, child: Text(lang))).toList(),
+                    items: supportedLanguages.keys.map((String lang) => DropdownMenuItem<String>(value: lang, child: Text(lang))).toList(),
                     onChanged: (val) => setState(() => selectedLanguage = val ?? ""),
                   ),
                 ),
@@ -133,7 +145,13 @@ class _EnglishPageState extends State<EnglishPage> {
               TextField(
                 maxLines: 5,
                 onChanged: (val) => inputText = val,
-                decoration: InputDecoration(hintText: "Enter Text for Translation", filled: true, fillColor: const Color(0xFFF8FAFC), border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 2)), enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 2))),
+                decoration: InputDecoration(
+                  hintText: "Enter Text for Translation",
+                  filled: true,
+                  fillColor: const Color(0xFFF8FAFC),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 2)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 2)),
+                ),
               ),
               const SizedBox(height: 20),
               Wrap(spacing: 15, runSpacing: 10, children: [
