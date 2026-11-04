@@ -16,11 +16,33 @@ class LingoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final baseTextTheme = ThemeData.light().textTheme;
+
     return MaterialApp(
       title: 'Lingo',
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFFF8FAFC),
-        fontFamily: 'Times New Roman',
+        // Use a standard sans-serif available in browsers instead of the
+        // previous serif face, which made the interface look thin and dated.
+        fontFamily: 'Arial',
+        textTheme: baseTextTheme.copyWith(
+          bodySmall: baseTextTheme.bodySmall?.copyWith(
+            fontWeight: FontWeight.w500,
+            color: const Color(0xFF334155),
+          ),
+          bodyMedium: baseTextTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF1E293B),
+          ),
+          bodyLarge: baseTextTheme.bodyLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF1E293B),
+          ),
+          titleMedium: baseTextTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF1E293B),
+          ),
+        ),
       ),
       initialRoute: '/',
       onGenerateRoute: (settings) {
