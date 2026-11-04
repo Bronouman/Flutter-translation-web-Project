@@ -4,11 +4,19 @@
   "outputDirectory": "lingo_app/build/web",
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "https://lingo-backend.onrender.com/:path*"
+      "source": "/api/translate",
+      "destination": "https://lingo-backend.onrender.com/translate"
     },
     {
-      "source": "/api",
+      "source": "/api/detect",
+      "destination": "https://lingo-backend.onrender.com/detect"
+    },
+    {
+      "source": "/api/speak",
+      "destination": "https://lingo-backend.onrender.com/speak"
+    },
+    {
+      "source": "/api/health",
       "destination": "https://lingo-backend.onrender.com/health"
     },
     {
