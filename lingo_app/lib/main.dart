@@ -20,7 +20,7 @@ class LingoApp extends StatelessWidget {
       title: 'Lingo',
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFFF8FAFC),
-        fontFamily: 'Poppins',
+        fontFamily: 'Times New Roman',
       ),
       initialRoute: '/',
       onGenerateRoute: (settings) {
