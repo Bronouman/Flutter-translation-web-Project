@@ -22,9 +22,9 @@ class LingoApp extends StatelessWidget {
       title: 'Lingo',
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFFF8FAFC),
-        // Georgia gives English text a more polished character while keeping
-        // comfortable, familiar letterforms. Arabic uses the platform fallback.
-        fontFamily: 'Georgia',
+        // Use Playfair Display as the app-wide typeface. Characters not
+        // included in the font, such as Arabic glyphs, use the platform fallback.
+        fontFamily: 'Playfair Display',
         textTheme: baseTextTheme.copyWith(
           bodySmall: baseTextTheme.bodySmall?.copyWith(
             fontWeight: FontWeight.w400,
