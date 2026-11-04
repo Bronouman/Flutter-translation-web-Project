@@ -22,24 +22,24 @@ class LingoApp extends StatelessWidget {
       title: 'Lingo',
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFFF8FAFC),
-        // Use a standard sans-serif available in browsers instead of the
-        // previous serif face, which made the interface look thin and dated.
-        fontFamily: 'Arial',
+        // Georgia gives English text a more polished character while keeping
+        // comfortable, familiar letterforms. Arabic uses the platform fallback.
+        fontFamily: 'Georgia',
         textTheme: baseTextTheme.copyWith(
           bodySmall: baseTextTheme.bodySmall?.copyWith(
-            fontWeight: FontWeight.w500,
-            color: const Color(0xFF334155),
+            fontWeight: FontWeight.w400,
+            color: const Color(0xFF475569),
           ),
           bodyMedium: baseTextTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF1E293B),
+            fontWeight: FontWeight.w400,
+            color: const Color(0xFF334155),
           ),
           bodyLarge: baseTextTheme.bodyLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF1E293B),
+            fontWeight: FontWeight.w400,
+            color: const Color(0xFF334155),
           ),
           titleMedium: baseTextTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
             color: const Color(0xFF1E293B),
           ),
         ),
