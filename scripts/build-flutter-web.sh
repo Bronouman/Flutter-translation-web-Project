@@ -8,5 +8,7 @@ fi
 
 export PATH="$FLUTTER_DIR/bin:$PATH"
 flutter config --no-analytics
-flutter pub get --directory=lingo_app
-flutter build web --release --no-pub --project-directory=lingo_app
+
+cd lingo_app
+flutter pub get
+flutter build web --release --no-pub
