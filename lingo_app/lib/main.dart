@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'layout.dart';
 import 'landing_page.dart';
 import 'english_page.dart';
@@ -16,15 +17,16 @@ class LingoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final baseTextTheme = ThemeData.light().textTheme;
+    final baseTextTheme = GoogleFonts.playfairDisplayTextTheme(
+      ThemeData.light().textTheme,
+    );
 
     return MaterialApp(
       title: 'Lingo',
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFFF8FAFC),
-        // Use Playfair Display as the app-wide typeface. Characters not
-        // included in the font, such as Arabic glyphs, use the platform fallback.
-        fontFamily: 'Playfair Display',
+        // GoogleFonts loads the actual Playfair Display font for Flutter's
+        // text renderer; the HTML stylesheet alone does not affect Flutter text.
         textTheme: baseTextTheme.copyWith(
           bodySmall: baseTextTheme.bodySmall?.copyWith(
             fontWeight: FontWeight.w400,
