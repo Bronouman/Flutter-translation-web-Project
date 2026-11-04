@@ -19,11 +19,18 @@ class ApiMessages {
 
   static const ApiMessages english = ApiMessages(
     nonJson:
-        'API returned a non-JSON response (HTTP {status}). Check Vercel /api routing and Render service status.',
+        'API returned a non-JSON response (HTTP {status}). Please try again shortly.',
     unexpected: 'Unexpected API response (HTTP {status}).',
     failed: 'Request failed (HTTP {status}).',
     network:
         'Could not reach the server. Check your internet connection and try again.',
+  );
+
+  static const ApiMessages arabic = ApiMessages(
+    nonJson: 'تعذرت قراءة استجابة الخادم (HTTP {status}). حاول مرة أخرى بعد قليل.',
+    unexpected: 'وصلت استجابة غير متوقعة من الخادم (HTTP {status}).',
+    failed: 'فشل الطلب (HTTP {status}).',
+    network: 'تعذر الاتصال بالخادم. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.',
   );
 }
 

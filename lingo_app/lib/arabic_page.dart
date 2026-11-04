@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:audioplayers/audioplayers.dart';
+import 'api_client.dart';
 import 'languages.dart';
 
 class ArabicPage extends StatefulWidget {
@@ -12,35 +12,18 @@ class ArabicPage extends StatefulWidget {
 }
 
 class _ArabicPageState extends State<ArabicPage> {
-  String get backendUrl {
-    final host = Uri.base.host;
-    if (host.isEmpty || host == 'localhost' || host == '127.0.0.1') {
-      return 'http://localhost:8000';
-    }
-    // Same-origin proxy avoids browser CORS failures against Render.
-    return Uri.base.resolve('/api').toString();
-  }
-
   final AudioPlayer _audioPlayer = AudioPlayer();
   String inputText = "";
   String selectedLanguage = "";
   String translatedText = "";
 
-  Future<Map<String, dynamic>> _postJson(String path, Map<String, Object?> body) async {
-    final response = await http
-        .post(Uri.parse('$backendUrl$path'), headers: {'Content-Type': 'application/json'}, body: jsonEncode(body))
-        .timeout(const Duration(seconds: 90));
-    dynamic decoded;
-    try {
-      decoded = jsonDecode(response.body);
-    } on FormatException {
-      throw Exception('تعذرت قراءة استجابة الخادم (HTTP ${response.statusCode}). تحقق من نشر الخادم.');
-    }
-    if (decoded is! Map<String, dynamic>) throw Exception('وصلت استجابة غير متوقعة من الخادم (HTTP ${response.statusCode}).');
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(decoded['error']?.toString() ?? 'فشل الطلب (HTTP ${response.statusCode}).');
-    }
-    return decoded;
+  Future<Map<String, dynamic>> _postJson(String path, Map<String, Object?> body) =>
+      apiPostJson(path, body, messages: ApiMessages.arabic);
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
   }
 
   Future<void> handleTranslate() async {

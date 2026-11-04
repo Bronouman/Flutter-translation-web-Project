@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
+import 'api_client.dart';
 import 'languages.dart';
 
 class EnglishPage extends StatefulWidget {
@@ -14,16 +14,6 @@ class EnglishPage extends StatefulWidget {
 }
 
 class _EnglishPageState extends State<EnglishPage> {
-  // In production call Vercel on the same origin; Vercel proxies /api/* to
-  // Render. Calling Render directly from Flutter Web triggers browser CORS.
-  String get backendUrl {
-    final host = Uri.base.host;
-    if (host.isEmpty || host == 'localhost' || host == '127.0.0.1') {
-      return 'http://localhost:8000';
-    }
-    return Uri.base.resolve('/api').toString();
-  }
-
   final AudioPlayer _audioPlayer = AudioPlayer();
   String inputText = '';
   String selectedLanguage = '';
@@ -32,30 +22,13 @@ class _EnglishPageState extends State<EnglishPage> {
   Future<Map<String, dynamic>> _postJson(
     String path,
     Map<String, Object?> body,
-  ) async {
-    final response = await http
-        .post(
-          Uri.parse('$backendUrl$path'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode(body),
-        )
-        .timeout(const Duration(seconds: 90));
+  ) =>
+      apiPostJson(path, body);
 
-    dynamic decoded;
-    try {
-      decoded = jsonDecode(response.body);
-    } on FormatException {
-      throw Exception(
-        'API returned a non-JSON response (HTTP ${response.statusCode}). Check Vercel /api routing and Render service status.',
-      );
-    }
-    if (decoded is! Map<String, dynamic>) {
-      throw Exception('Unexpected API response (HTTP ${response.statusCode}).');
-    }
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(decoded['error']?.toString() ?? 'Request failed (HTTP ${response.statusCode}).');
-    }
-    return decoded;
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
   }
 
   Future<void> handleTranslate() async {

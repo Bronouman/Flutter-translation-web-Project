@@ -2,26 +2,24 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "bash scripts/build-flutter-web.sh",
   "outputDirectory": "lingo_app/build/web",
+  "functions": {
+    "api/translate.js": { "maxDuration": 60 },
+    "api/speak.js": { "maxDuration": 60 }
+  },
   "rewrites": [
     {
-      "source": "/api/translate",
-      "destination": "https://lingo-backend.onrender.com/translate"
-    },
-    {
-      "source": "/api/detect",
-      "destination": "https://lingo-backend.onrender.com/detect"
-    },
-    {
-      "source": "/api/speak",
-      "destination": "https://lingo-backend.onrender.com/speak"
-    },
-    {
-      "source": "/api/health",
-      "destination": "https://lingo-backend.onrender.com/health"
-    },
-    {
-      "source": "/:path*",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+    },
+    {
+      "source": "/(index.html|flutter_service_worker.js|flutter_bootstrap.js|version.json|manifest.json)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
     }
   ]
 }
