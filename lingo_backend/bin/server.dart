@@ -19,6 +19,8 @@ void main() async {
     "English": "en"
   };
 
+  app.get('/health', (Request request) => Response.ok('ok'));
+
   // 1. Translate Endpoint
   app.post('/translate', (Request request) async {
     try {
@@ -108,12 +110,11 @@ void main() async {
     }
   });
 
-  // Middleware pipeline with full CORS support
   final handler = const Pipeline()
       .addMiddleware(corsHeaders())
       .addHandler(app);
 
-  final port = 8000;
+  final port = int.tryParse(Platform.environment['PORT'] ?? '') ?? 8000;
   await io.serve(handler, InternetAddress.anyIPv4, port);
-  print('Dart Shelf Backend server active on http://localhost:$port');
+  print('Dart Shelf backend listening on port $port');
 }

@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: lingo-backend
+    runtime: docker
+    dockerfilePath: ./lingo_backend/Dockerfile
+    dockerContext: ./lingo_backend
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "10000"

@@ -1,8 +1,12 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "cd lingo_app && flutter build web",
+  "buildCommand": "bash scripts/build-flutter-web.sh",
   "outputDirectory": "lingo_app/build/web",
   "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://lingo-backend.onrender.com/$1"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"

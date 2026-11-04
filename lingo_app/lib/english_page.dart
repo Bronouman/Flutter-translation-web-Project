@@ -13,8 +13,11 @@ class EnglishPage extends StatefulWidget {
 
 class _EnglishPageState extends State<EnglishPage> {
   String get backendUrl {
-    final host = Uri.base.host.isEmpty ? 'localhost' : Uri.base.host;
-    return 'http://$host:8000';
+    final host = Uri.base.host;
+    if (host == 'localhost' || host == '127.0.0.1') {
+      return 'http://localhost:8000';
+    }
+    return Uri.base.resolve('/api').toString();
   }
 
   final AudioPlayer _audioPlayer = AudioPlayer();
