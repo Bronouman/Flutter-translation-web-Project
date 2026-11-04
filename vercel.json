@@ -1,1 +1,11 @@
-
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "cd lingo_app && flutter build web",
+  "outputDirectory": "lingo_app/build/web",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
