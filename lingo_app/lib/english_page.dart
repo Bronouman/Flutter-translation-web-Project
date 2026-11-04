@@ -14,7 +14,9 @@ class EnglishPage extends StatefulWidget {
 class _EnglishPageState extends State<EnglishPage> {
   String get backendUrl {
     final host = Uri.base.host;
-    if (host == 'localhost' || host == '127.0.0.1') {
+    // Keep the original localhost backend for local Flutter web runs, including
+    // loopback aliases. On the deployed site, use the same-origin API proxy.
+    if (host.isEmpty || host == 'localhost' || host == '127.0.0.1') {
       return 'http://localhost:8000';
     }
     return Uri.base.resolve('/api').toString();
@@ -27,7 +29,7 @@ class _EnglishPageState extends State<EnglishPage> {
   String translatedText = "";
 
   Future<void> handleTranslate() async {
-    if (inputText.isEmpty) {
+    if (inputText.trim().isEmpty) {
       _showAlert("Please Enter Some Text For Translation");
       return;
     }
@@ -42,15 +44,24 @@ class _EnglishPageState extends State<EnglishPage> {
       final res = await http.post(
         Uri.parse('$backendUrl/translate'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'text': inputText, 'dest_lang_code': destCode}),
+        body: jsonEncode({'text': inputText.trim(), 'dest_lang_code': destCode}),
       );
 
       final data = jsonDecode(res.body);
-      if (data['result'] != null) {
-        setState(() {
-          translatedText = data['result'];
-        });
+      if (res.statusCode < 200 || res.statusCode >= 300) {
+        _showAlert(data is Map && data['error'] is String
+            ? data['error'] as String
+            : 'Translation request failed (${res.statusCode}).');
+        return;
       }
+      if (data is! Map || data['result'] is! String) {
+        _showAlert('The translation service returned an invalid response.');
+        return;
+      }
+      if (!mounted) return;
+      setState(() {
+        translatedText = data['result'] as String;
+      });
     } catch (error) {
       _showAlert("Error translating. Please try again.");
     }
